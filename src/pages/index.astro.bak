@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PortfolioApp from '../components/PortfolioApp.jsx';
+---
+
+<Layout>
+	<PortfolioApp client:only="react" />
+</Layout>
