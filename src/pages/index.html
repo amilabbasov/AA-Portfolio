@@ -18,16 +18,18 @@
     }
 
     :root {
-      --bg: #080810;
+      --bg: #030308;
       --fg: #f0f0f8;
       --dim: rgba(240, 240, 248, .35);
-      --accent: #7c6dfa;
+      --accent: #8b7dfa;
       --accent2: #fa6d8f;
+      --space-glow: rgba(124, 109, 250, 0.15);
     }
 
     html {
       overflow-x: hidden;
       scroll-behavior: auto;
+      background: var(--bg);
     }
 
     body {
@@ -43,19 +45,24 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 12px;
-      height: 12px;
-      background: var(--fg);
+      width: 10px;
+      height: 10px;
+      background: #fff;
       border-radius: 50%;
       pointer-events: none;
       z-index: 9999;
-      mix-blend-mode: difference;
-      transition: width .25s ease, height .25s ease;
+      box-shadow: 0 0 15px var(--accent), 0 0 30px var(--accent);
+      transition: width .25s ease, height .25s ease, box-shadow .25s ease, opacity .2s;
+      transform-origin: center center;
+      will-change: transform, width, height, filter;
     }
 
     #cursor.big {
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 20px var(--accent2);
     }
 
     /* ── NOISE LAYER ── */
@@ -63,9 +70,10 @@
       content: '';
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
       pointer-events: none;
       z-index: 998;
+      opacity: 0.4;
     }
 
     /* ── CANVAS (orb) ── */
@@ -129,13 +137,30 @@
       flex-direction: column;
       justify-content: center;
       padding: 10rem 8% 6rem;
+      animation: floatSection 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatSection {
+      0% {
+        transform: translateY(0px);
+      }
+
+      100% {
+        transform: translateY(-15px);
+      }
+    }
+
+    section:nth-child(even) {
+      animation-duration: 10s;
+      animation-delay: -2s;
     }
 
     /* ── HERO ── */
     #hero {
       min-height: 100vh;
-      justify-content: flex-end;
-      padding-bottom: 8rem;
+      justify-content: center;
+      padding-top: 8rem;
+      padding-bottom: 4rem;
     }
 
     .hero-eyebrow {
@@ -152,28 +177,33 @@
     .hero-name {
       font-size: clamp(4rem, 11vw, 10rem);
       font-weight: 700;
-      line-height: .95;
-      letter-spacing: -.03em;
-      overflow: hidden;
+      line-height: .8;
+      letter-spacing: -.05em;
+      position: relative;
+      cursor: none;
+      perspective: 1200px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
     }
 
-    .hero-name .line {
+    .hero-name .word {
       display: block;
-      overflow: hidden;
+      position: relative;
     }
 
-    .hero-name .line span {
+    .hero-name .word:nth-child(2) {
+      margin-top: -0.5rem;
+      margin-left: 5%;
+    }
+
+    .char {
       display: inline-block;
-      transform: translateY(110%);
-      animation: slideUp 1s cubic-bezier(.16, 1, .3, 1) forwards;
-    }
-
-    .hero-name .line:nth-child(1) span {
-      animation-delay: .4s;
-    }
-
-    .hero-name .line:nth-child(2) span {
-      animation-delay: .55s;
+      white-space: pre;
+      position: relative;
+      transform-style: preserve-3d;
+      will-change: transform, color, text-shadow;
+      color: var(--fg);
     }
 
     .hero-desc {
@@ -243,6 +273,40 @@
       background: linear-gradient(90deg, var(--accent), transparent);
       margin-bottom: 3rem;
       transition: width 1.2s cubic-bezier(.16, 1, .3, 1);
+      box-shadow: 0 0 10px var(--accent);
+      position: relative;
+    }
+
+    .section-line::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 30px;
+      background: #fff;
+      filter: blur(4px);
+      animation: laserSweep 4s linear infinite;
+    }
+
+    @keyframes laserSweep {
+      0% {
+        transform: translateX(0);
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      90% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateX(300px);
+        opacity: 0;
+      }
     }
 
     .section-line.drawn {
@@ -344,21 +408,36 @@
 
     .project-row {
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: 80px 1fr auto;
       align-items: center;
-      gap: 2rem;
-      padding: 2.2rem 0;
-      border-bottom: 1px solid rgba(255, 255, 255, .06);
+      padding: 2.5rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
       opacity: 0;
-      transform: translateY(25px);
-      transition: opacity .5s, transform .5s;
-      cursor: none;
-      overflow: hidden;
+      transform: translateY(20px);
+      transition: opacity .8s, transform .8s, background .4s;
       position: relative;
+      overflow: hidden;
     }
 
-    .project-row:first-child {
-      border-top: 1px solid rgba(255, 255, 255, .06);
+    .project-row::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(124, 109, 250, 0.03), transparent);
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .project-row:hover::before {
+      transform: translateX(100%);
+    }
+
+    .project-row:hover {
+      background: rgba(255, 255, 255, 0.02);
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+      border-radius: 4px;
     }
 
     .project-row.vis {
@@ -456,6 +535,78 @@
       background: #6a5ce0;
     }
 
+    /* ── PROJECT PREVIEW ── */
+    #project-preview {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 260px;
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      background: rgba(15, 15, 20, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .preview-img-wrapper {
+      width: 100%;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #project-preview img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transform: scale(1.1);
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #project-preview.active {
+      opacity: 1;
+    }
+
+    #project-preview.active img {
+      transform: scale(1);
+    }
+
+    .preview-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    #project-preview-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: -0.02em;
+    }
+
+    #project-preview-desc {
+      font-size: 0.75rem;
+      color: var(--dim);
+      line-height: 1.4;
+    }
+
+    /* ── MAGNETIC ELEMENTS ── */
+    .logo,
+    .nav-links a,
+    .contact-link {
+      display: inline-block;
+    }
+
     /* ── FOOTER ── */
     footer {
       position: relative;
@@ -524,6 +675,17 @@
   <!-- Cursor -->
   <div id="cursor"></div>
 
+  <!-- Project Preview -->
+  <div id="project-preview">
+    <div class="preview-img-wrapper">
+      <img id="project-preview-img" src="" alt="Project Preview">
+    </div>
+    <div class="preview-info">
+      <div id="project-preview-name"></div>
+      <div id="project-preview-desc"></div>
+    </div>
+  </div>
+
   <!-- Gradient Orb Canvas -->
   <canvas id="orb-canvas"></canvas>
 
@@ -541,9 +703,9 @@
   <!-- Hero -->
   <section id="hero">
     <div class="hero-eyebrow">Creative Developer &amp; Designer</div>
-    <h1 class="hero-name">
-      <span class="line"><span>Amil</span></span>
-      <span class="line"><span>Abbasov</span></span>
+    <h1 class="hero-name" id="hero-name">
+      <span class="word">Amil</span>
+      <span class="word">Abbasov</span>
     </h1>
     <p class="hero-desc">I build things that live on screens — immersive, precise, and alive. Every pixel tells a story.
     </p>
@@ -572,13 +734,6 @@
     <div class="label">Selected Work</div>
     <div class="section-line"></div>
     <div class="projects-list" id="projects-list"></div>
-  </section>
-
-  <!-- Progress -->
-  <section id="progress">
-    <div class="label">Progress Projects</div>
-    <div class="section-line"></div>
-    <div class="projects-list" id="progress-list"></div>
   </section>
 
   <!-- Contact -->
@@ -616,14 +771,11 @@
       ];
 
       const PROJECTS = [
-        { num: '01', name: 'OTOGO', hoverName: 'Mobile App', tags: ['React Native', 'Firebase'] },
-        { num: '02', name: 'QR AVAN', hoverName: 'Mobile App', tags: ['React Native', 'Node.js'] },
-        { num: '03', name: 'QR AVAN BUSINESS', hoverName: 'Mobile App', tags: ['React Native', 'Business'] },
-        { num: '04', name: 'EASYBUSINESS', hoverName: 'Mobile App', tags: ['React Native', 'SaaS'] },
-      ];
-
-      const PROGRESS_PROJECTS = [
-        { num: '01', name: 'Karier', hoverName: 'Mobile App/Web Platform', tags: ['Next.js', 'React Native'] },
+        { num: '01', name: 'OTOGO', hoverName: 'Mobile App', desc: 'A mobile app built with React Native and Firebase.', tags: ['React Native', 'Firebase'], image: '/project/otogo.svg' },
+        { num: '02', name: 'QR AVAN', hoverName: 'Mobile App', desc: 'Node.js powered backend with a React Native app.', tags: ['React Native', 'Node.js'], image: '/project/qravan.svg' },
+        { num: '03', name: 'QR AVAN BUSINESS', hoverName: 'Mobile App', desc: 'Business management tool for the QR AVAN ecosystem.', tags: ['React Native', 'Business'], image: '/project/qravan_business.svg' },
+        { num: '04', name: 'EASYBUSINESS', hoverName: 'Mobile App', desc: 'SaaS mobile application for easy business management.', tags: ['React Native', 'SaaS'], image: '/project/easybusiness.svg' },
+        { num: '05', name: 'KARİER', hoverName: 'Mobile App/Web Platform', desc: 'Next-gen career and job platform.', tags: ['Next.js', 'React Native'], image: '/project/karier.svg' },
       ];
 
       /* ─── POPULATE ─── */
@@ -655,6 +807,9 @@
           const d = document.createElement('div');
           d.className = 'project-row';
           d.dataset.hover = p.hoverName;
+          d.dataset.name = p.name;
+          d.dataset.desc = p.desc;
+          if (p.image) d.dataset.image = p.image;
           d.style.transitionDelay = (i * 0.1) + 's';
           d.innerHTML = `<span class="project-num">${p.num}</span><span class="project-name">${p.name}</span><div class="project-tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
           list.appendChild(d);
@@ -662,20 +817,148 @@
       }
 
       populateProjects(document.getElementById('projects-list'), PROJECTS);
-      populateProjects(document.getElementById('progress-list'), PROGRESS_PROJECTS);
       const projRows = Array.from(document.querySelectorAll('.project-row'));
 
-      /* ─── CURSOR ─── */
+      /* ─── CURSOR & MAGNETIC SETUP ─── */
       const cursor = document.getElementById('cursor');
       let cx = 0, cy = 0, tx = 0, ty = 0;
       let rafC;
 
+      /* Setup Magnetic */
+      const magnetics = document.querySelectorAll('.logo, .nav-links a, .contact-link');
+      magnetics.forEach(el => {
+        el.magneticProps = { x: 0, y: 0, tx: 0, ty: 0 };
+        el.addEventListener('mousemove', (e) => {
+          const rect = el.getBoundingClientRect();
+          const h = rect.width / 2;
+          const v = rect.height / 2;
+          el.magneticProps.tx = (e.clientX - rect.left - h) * 0.4;
+          el.magneticProps.ty = (e.clientY - rect.top - v) * 0.4;
+        });
+        el.addEventListener('mouseleave', () => {
+          el.magneticProps.tx = 0;
+          el.magneticProps.ty = 0;
+        });
+      });
+
+      /* Setup Preview */
+      const previewEl = document.getElementById('project-preview');
+      const previewImg = document.getElementById('project-preview-img');
+      const previewName = document.getElementById('project-preview-name');
+      const previewDesc = document.getElementById('project-preview-desc');
+      let px = 0, py = 0;
+
+      /* ─── INTERACTIVE HERO NAME ─── */
+      const heroWords = document.querySelectorAll('#hero-name .word');
+      const heroLetters = [];
+
+      heroWords.forEach((wordEl, wIdx) => {
+        const text = wordEl.textContent.trim();
+        wordEl.innerHTML = '';
+        text.split('').forEach((char, cIdx) => {
+          const span = document.createElement('span');
+          span.textContent = char;
+          span.className = 'char';
+          span.style.opacity = '0';
+          span.style.transform = `translateY(60px) rotateX(-60deg)`;
+          wordEl.appendChild(span);
+
+          const letterObj = {
+            el: span,
+            x: 0, y: 0,
+            vx: 0, vy: 0,
+            rx: 0, ry: 0,
+            ready: false
+          };
+          heroLetters.push(letterObj);
+
+          setTimeout(() => {
+            span.style.transition = `opacity 0.9s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1)`;
+            span.style.opacity = '1';
+            span.style.transform = `translateY(0) rotateX(0) rotateY(0) scale(1)`;
+            setTimeout(() => {
+              span.style.transition = '';
+              letterObj.ready = true;
+            }, 900);
+          }, 300 + (wIdx * 150) + (cIdx * 50));
+        });
+      });
+
       window.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
 
+      let lastTx = 0, lastTy = 0;
       function animCursor() {
-        cx += (tx - cx) * 0.6;
-        cy += (ty - cy) * 0.6;
-        cursor.style.transform = `translate(${cx - cursor.offsetWidth / 2}px, ${cy - cursor.offsetHeight / 2}px)`;
+        const vx = tx - lastTx;
+        const vy = ty - lastTy;
+        lastTx = tx;
+        lastTy = ty;
+
+        const dist = Math.sqrt(vx * vx + vy * vy);
+        const angle = Math.atan2(vy, vx) * 180 / Math.PI;
+
+        cx += (tx - cx) * 0.45;
+        cy += (ty - cy) * 0.45;
+
+        const stretch = 1 + Math.min(dist / 40, 4);
+        const blur = Math.min(dist / 20, 5);
+        
+        cursor.style.transform = `translate(${cx - 5}px, ${cy - 5}px) rotate(${angle}deg) scaleX(${stretch})`;
+        cursor.style.filter = `blur(${blur}px)`;
+
+        px += (tx - px) * 0.08;
+        py += (ty - py) * 0.08;
+        if (previewEl) {
+          previewEl.style.transform = `translate(${px + 20}px, ${py - 100}px)`;
+        }
+
+        magnetics.forEach(el => {
+          el.magneticProps.x += (el.magneticProps.tx - el.magneticProps.x) * 0.1;
+          el.magneticProps.y += (el.magneticProps.ty - el.magneticProps.y) * 0.1;
+          el.style.transform = `translate(${el.magneticProps.x}px, ${el.magneticProps.y}px)`;
+        });
+
+        // Hero Letters Physics
+        heroLetters.forEach(l => {
+          if (!l.ready) return;
+
+          const rect = l.el.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+
+          const dx = tx - cx;
+          const dy = ty - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          const maxDist = 250;
+          if (dist < maxDist) {
+            const force = (maxDist - dist) / maxDist;
+            l.vx -= (dx / dist) * force * 1.5;
+            l.vy -= (dy / dist) * force * 1.5;
+
+            l.el.style.color = '#fff';
+            l.el.style.textShadow = `0 0 ${force * 40}px var(--accent), 0 0 ${force * 20}px #fff`;
+            l.rx = -(dy / maxDist) * 45;
+            l.ry = (dx / maxDist) * 45;
+          } else {
+            l.el.style.color = 'var(--fg)';
+            l.el.style.textShadow = 'none';
+            l.rx += (0 - l.rx) * 0.1;
+            l.ry += (0 - l.ry) * 0.1;
+          }
+
+          l.vx += (0 - l.x) * 0.08;
+          l.vy += (0 - l.y) * 0.08;
+
+          l.vx *= 0.82;
+          l.vy *= 0.82;
+
+          l.x += l.vx;
+          l.y += l.vy;
+
+          const scale = 1 + (dist < maxDist ? ((maxDist - dist) / maxDist) * 0.1 : 0);
+          l.el.style.transform = `translate(${l.x}px, ${l.y}px) rotateX(${l.rx}deg) rotateY(${l.ry}deg) scale(${scale})`;
+        });
+
         rafC = requestAnimationFrame(animCursor);
       }
       animCursor();
@@ -685,50 +968,197 @@
         el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
       });
 
-      /* ─── GRADIENT ORB ─── */
+      /* ─── COSMIC STARFIELD ENGINE ─── */
       const canvas = document.getElementById('orb-canvas');
       const ctx = canvas.getContext('2d');
-      let W, H, mx = 0.5, my = 0.5, tmx = 0.5, tmy = 0.5;
+      let W, H;
+      let mx = 0, my = 0, tmx = 0, tmy = 0;
+
+      const stars = [];
+      const numStars = 280;
+      const shootingStars = [];
+      const planets = [];
+
+      class Planet {
+        constructor() {
+          this.init();
+        }
+        init() {
+          this.x = Math.random() * window.innerWidth;
+          this.y = Math.random() * window.innerHeight;
+          this.size = 15 + Math.random() * 40;
+          this.z = 0.2 + Math.random() * 0.5; // Very deep parallax
+          this.color = Math.random() > 0.5 ? 'rgba(124, 109, 250, 0.4)' : 'rgba(250, 109, 143, 0.3)';
+          this.hasRing = Math.random() > 0.7;
+          this.rotation = Math.random() * Math.PI * 2;
+        }
+        update() {
+          this.y -= 0.02 * this.z;
+          if (this.y < -this.size * 2) this.y = H + this.size;
+        }
+        draw() {
+          const px = (mx * 40) * this.z;
+          const py = (my * 40) * this.z;
+          const tx = this.x + px;
+          const ty = this.y + py;
+
+          // Planet Body
+          const grad = ctx.createRadialGradient(tx - this.size * 0.3, ty - this.size * 0.3, this.size * 0.1, tx, ty, this.size);
+          grad.addColorStop(0, this.color);
+          grad.addColorStop(1, 'rgba(10, 10, 15, 0.8)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(tx, ty, this.size, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Ring
+          if (this.hasRing) {
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.ellipse(tx, ty, this.size * 2.2, this.size * 0.6, this.rotation, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+        }
+      }
+
+      class Star {
+        constructor() {
+          this.init();
+        }
+        init() {
+          this.x = Math.random() * window.innerWidth;
+          this.y = Math.random() * window.innerHeight;
+          this.z = Math.random() * 2;
+          this.size = Math.random() * 1.5;
+          this.opacity = 0.1 + Math.random() * 0.7;
+          this.pulse = 0.005 + Math.random() * 0.02;
+          this.pulseDir = 1;
+        }
+        update() {
+          this.y -= 0.05 * this.z;
+          if (this.y < 0) this.y = H;
+
+          this.opacity += this.pulse * this.pulseDir;
+          if (this.opacity > 0.9 || this.opacity < 0.1) this.pulseDir *= -1;
+        }
+        draw() {
+          const px = (mx * 80) * this.z;
+          const py = (my * 80) * this.z;
+
+          ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+          ctx.beginPath();
+          ctx.arc(this.x + px, this.y + py, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      class ShootingStar {
+        constructor() {
+          this.reset();
+        }
+        reset() {
+          this.side = Math.random() > 0.5 ? 1 : -1;
+          this.x = this.side === 1 ? -100 : W + 100;
+          this.y = Math.random() * H * 0.6;
+          this.len = 80 + Math.random() * 120;
+          this.speed = (12 + Math.random() * 18) * this.side;
+          this.angle = (Math.random() * 0.2 + 0.1) * (Math.random() > 0.5 ? 1 : -1);
+          this.opacity = 0;
+          this.active = false;
+          this.wait = 50 + Math.random() * 300;
+        }
+        update() {
+          if (!this.active) {
+            this.wait--;
+            if (this.wait <= 0) this.active = true;
+            return;
+          }
+          this.x += this.speed;
+          this.y += Math.abs(this.speed) * this.angle;
+          this.opacity = Math.sin((Math.abs(this.speed) / 30) * Math.PI);
+          if ((this.side === 1 && this.x > W + 200) || (this.side === -1 && this.x < -200)) this.reset();
+        }
+        draw() {
+          if (!this.active) return;
+          const grad = ctx.createLinearGradient(this.x, this.y, this.x - (this.len * (this.side)), this.y - (this.len * this.angle));
+          grad.addColorStop(0, `rgba(255, 255, 255, ${this.opacity})`);
+          grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 2;
+          ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(this.x, this.y);
+          ctx.lineTo(this.x - (this.len * (this.side)), this.y - (this.len * this.angle));
+          ctx.stroke();
+        }
+      }
+
+      function initStars() {
+        stars.length = 0;
+        for (let i = 0; i < numStars; i++) stars.push(new Star());
+        shootingStars.length = 0;
+        for (let i = 0; i < 3; i++) shootingStars.push(new ShootingStar());
+        planets.length = 0;
+        for (let i = 0; i < 4; i++) planets.push(new Planet());
+      }
 
       function resize() {
         W = canvas.width = window.innerWidth;
         H = canvas.height = window.innerHeight;
+        initStars();
       }
       resize();
       window.addEventListener('resize', resize);
 
       window.addEventListener('mousemove', e => {
-        tmx = e.clientX / window.innerWidth;
-        tmy = e.clientY / window.innerHeight;
+        tmx = (e.clientX / window.innerWidth) - 0.5;
+        tmy = (e.clientY / window.innerHeight) - 0.5;
       });
 
-      function drawOrb() {
-        mx += (tmx - mx) * 0.4;
-        my += (tmy - my) * 0.4;
+      function drawCosmos() {
+        mx += (tmx - mx) * 0.05;
+        my += (tmy - my) * 0.05;
 
         ctx.clearRect(0, 0, W, H);
 
-        // Primary orb follows cursor
-        const x1 = W * mx;
-        const y1 = H * my;
-        const g1 = ctx.createRadialGradient(x1, y1, 0, x1, y1, W * 0.55);
-        g1.addColorStop(0, 'rgba(124,109,250,0.12)');
-        g1.addColorStop(1, 'rgba(124,109,250,0)');
+        // 1. Draw Nebula Background
+        const gradX = W * (0.5 + mx * 0.5);
+        const gradY = H * (0.5 + my * 0.5);
+
+        const g1 = ctx.createRadialGradient(gradX, gradY, 0, gradX, gradY, W * 0.8);
+        g1.addColorStop(0, 'rgba(124, 109, 250, 0.08)');
+        g1.addColorStop(1, 'rgba(124, 109, 250, 0)');
         ctx.fillStyle = g1;
         ctx.fillRect(0, 0, W, H);
 
-        // Secondary accent orb (opposite corner)
-        const x2 = W * (1 - mx);
-        const y2 = H * (1 - my * 0.6);
-        const g2 = ctx.createRadialGradient(x2, y2, 0, x2, y2, W * 0.45);
-        g2.addColorStop(0, 'rgba(250,109,143,0.08)');
-        g2.addColorStop(1, 'rgba(250,109,143,0)');
+        const g2 = ctx.createRadialGradient(W - gradX, H - gradY, 0, W - gradX, H - gradY, W * 0.6);
+        g2.addColorStop(0, 'rgba(250, 109, 143, 0.05)');
+        g2.addColorStop(1, 'rgba(250, 109, 143, 0)');
         ctx.fillStyle = g2;
         ctx.fillRect(0, 0, W, H);
 
-        requestAnimationFrame(drawOrb);
+        // 2. Draw Planets (Deepest)
+        planets.forEach(p => {
+          p.update();
+          p.draw();
+        });
+
+        // 3. Draw Stars
+        stars.forEach(s => {
+          s.update();
+          s.draw();
+        });
+
+        // 4. Draw Shooting Stars
+        shootingStars.forEach(s => {
+          s.update();
+          s.draw();
+        });
+
+        requestAnimationFrame(drawCosmos);
       }
-      drawOrb();
+      drawCosmos();
 
       /* ─── SCROLL-DRIVEN ABOUT REVEAL ─── */
       const aboutSection = document.getElementById('about');
@@ -778,9 +1208,19 @@
         const nameEl = row.querySelector('.project-name');
         const original = nameEl.textContent;
         const targetHover = row.dataset.hover;
+        const imageUrl = row.dataset.image;
+        const pName = row.dataset.name;
+        const pDesc = row.dataset.desc;
         let frame = 0, total = 12, raf;
 
         row.addEventListener('mouseenter', () => {
+          if (imageUrl && previewImg && previewEl) {
+            previewImg.src = imageUrl;
+            previewName.textContent = pName;
+            previewDesc.textContent = pDesc;
+            previewEl.classList.add('active');
+          }
+
           cancelAnimationFrame(raf);
           frame = 0;
           function scramble() {
@@ -797,6 +1237,8 @@
           scramble();
         });
         row.addEventListener('mouseleave', () => {
+          if (previewEl) previewEl.classList.remove('active');
+
           cancelAnimationFrame(raf);
           frame = 0;
           function unscramble() {
