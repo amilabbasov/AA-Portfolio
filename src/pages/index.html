@@ -29,11 +29,12 @@
     html {
       overflow-x: hidden;
       scroll-behavior: auto;
-      background: var(--bg);
+      background: #030308;
+      /* Fallback */
     }
 
     body {
-      background: var(--bg);
+      background: transparent;
       color: var(--fg);
       font-family: 'Space Grotesk', sans-serif;
       cursor: none;
@@ -76,8 +77,8 @@
       opacity: 0.4;
     }
 
-    /* ── CANVAS (orb) ── */
-    #orb-canvas {
+    /* ── CANVAS (stars) ── */
+    #star-canvas {
       position: fixed;
       inset: 0;
       width: 100%;
@@ -686,8 +687,8 @@
     </div>
   </div>
 
-  <!-- Gradient Orb Canvas -->
-  <canvas id="orb-canvas"></canvas>
+  <!-- Cosmic Starfield Canvas -->
+  <canvas id="star-canvas"></canvas>
 
   <!-- Nav -->
   <nav>
@@ -754,176 +755,210 @@
     <span>Built with precision.</span>
   </footer>
 
-  <script>
-    (function () {
-      'use strict';
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 
-      /* ─── DATA ─── */
-      const ABOUT = "I'm a creative developer who lives at the intersection of design and engineering. I obsess over the details others overlook — the spring of an animation, the weight of a typeface, the silence between interactions.";
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-      const STACK = [
-        { name: 'React / Next.js', level: 'Expert' },
-        { name: 'TypeScript', level: 'Expert' },
-        { name: 'Three.js / WebGL', level: 'Advanced' },
-        { name: 'GSAP / Motion', level: 'Advanced' },
-        { name: 'Node.js', level: 'Proficient' },
-        { name: 'Figma / UI Design', level: 'Proficient' },
-      ];
+    'use strict';
 
-      const PROJECTS = [
-        { num: '01', name: 'OTOGO', hoverName: 'Mobile App', desc: 'A mobile app built with React Native and Firebase.', tags: ['React Native', 'Firebase'], image: '/project/otogo.svg' },
-        { num: '02', name: 'QR AVAN', hoverName: 'Mobile App', desc: 'Node.js powered backend with a React Native app.', tags: ['React Native', 'Node.js'], image: '/project/qravan.svg' },
-        { num: '03', name: 'QR AVAN BUSINESS', hoverName: 'Mobile App', desc: 'Business management tool for the QR AVAN ecosystem.', tags: ['React Native', 'Business'], image: '/project/qravan_business.svg' },
-        { num: '04', name: 'EASYBUSINESS', hoverName: 'Mobile App', desc: 'SaaS mobile application for easy business management.', tags: ['React Native', 'SaaS'], image: '/project/easybusiness.svg' },
-        { num: '05', name: 'KARİER', hoverName: 'Mobile App/Web Platform', desc: 'Next-gen career and job platform.', tags: ['Next.js', 'React Native'], image: '/project/karier.svg' },
-      ];
+    /* ─── DATA ─── */
+    const ABOUT = "I'm a creative developer who lives at the intersection of design and engineering. I obsess over the details others overlook — the spring of an animation, the weight of a typeface, the silence between interactions.";
 
-      /* ─── POPULATE ─── */
-      // About words
-      const aboutEl = document.getElementById('about-text');
-      ABOUT.split(' ').forEach(w => {
-        const s = document.createElement('span');
-        s.className = 'word';
-        s.textContent = w;
-        aboutEl.appendChild(s);
-      });
-      const words = Array.from(aboutEl.querySelectorAll('.word'));
+    const STACK = [
+      { name: 'React / Next.js', level: 'Expert' },
+      { name: 'TypeScript', level: 'Expert' },
+      { name: 'Three.js / WebGL', level: 'Advanced' },
+      { name: 'GSAP / Motion', level: 'Advanced' },
+      { name: 'Node.js', level: 'Proficient' },
+      { name: 'Figma / UI Design', level: 'Proficient' },
+    ];
 
-      // Stack
-      const stackList = document.getElementById('stack-list');
-      STACK.forEach((s, i) => {
+    const PROJECTS = [
+      { num: '01', name: 'OTOGO', hoverName: 'Mobile App', desc: 'A mobile app built with React Native and Firebase.', tags: ['React Native', 'Firebase'], image: '/project/otogo.svg' },
+      { num: '02', name: 'QR AVAN', hoverName: 'Mobile App', desc: 'Node.js powered backend with a React Native app.', tags: ['React Native', 'Node.js'], image: '/project/qravan.svg' },
+      { num: '03', name: 'QR AVAN BUSINESS', hoverName: 'Mobile App', desc: 'Business management tool for the QR AVAN ecosystem.', tags: ['React Native', 'Business'], image: '/project/qravan_business.svg' },
+      { num: '04', name: 'EASYBUSINESS', hoverName: 'Mobile App', desc: 'SaaS mobile application for easy business management.', tags: ['React Native', 'SaaS'], image: '/project/easybusiness.svg' },
+      { num: '05', name: 'KARİER', hoverName: 'Mobile App/Web Platform', desc: 'Next-gen career and job platform.', tags: ['Next.js', 'React Native'], image: '/project/karier.svg' },
+    ];
+
+    /* ─── POPULATE ─── */
+    // About words
+    const aboutEl = document.getElementById('about-text');
+    ABOUT.split(' ').forEach(w => {
+      const s = document.createElement('span');
+      s.className = 'word';
+      s.textContent = w;
+      aboutEl.appendChild(s);
+    });
+    const words = Array.from(aboutEl.querySelectorAll('.word'));
+
+    // Stack
+    const stackList = document.getElementById('stack-list');
+    STACK.forEach((s, i) => {
+      const d = document.createElement('div');
+      d.className = 'stack-item';
+      d.style.transitionDelay = (i * 0.07) + 's';
+      d.innerHTML = `<span class="stack-name">${s.name}</span><span class="stack-level">${s.level}</span>`;
+      stackList.appendChild(d);
+    });
+    const stackItems = Array.from(document.querySelectorAll('.stack-item'));
+
+    // Projects
+    function populateProjects(list, data) {
+      if (!list) return;
+      data.forEach((p, i) => {
         const d = document.createElement('div');
-        d.className = 'stack-item';
-        d.style.transitionDelay = (i * 0.07) + 's';
-        d.innerHTML = `<span class="stack-name">${s.name}</span><span class="stack-level">${s.level}</span>`;
-        stackList.appendChild(d);
+        d.className = 'project-row';
+        d.dataset.hover = p.hoverName;
+        d.dataset.name = p.name;
+        d.dataset.desc = p.desc;
+        if (p.image) d.dataset.image = p.image;
+        d.style.transitionDelay = (i * 0.1) + 's';
+        d.innerHTML = `<span class="project-num">${p.num}</span><span class="project-name">${p.name}</span><div class="project-tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
+        list.appendChild(d);
       });
-      const stackItems = Array.from(document.querySelectorAll('.stack-item'));
+    }
 
-      // Projects
-      function populateProjects(list, data) {
-        if (!list) return;
-        data.forEach((p, i) => {
-          const d = document.createElement('div');
-          d.className = 'project-row';
-          d.dataset.hover = p.hoverName;
-          d.dataset.name = p.name;
-          d.dataset.desc = p.desc;
-          if (p.image) d.dataset.image = p.image;
-          d.style.transitionDelay = (i * 0.1) + 's';
-          d.innerHTML = `<span class="project-num">${p.num}</span><span class="project-name">${p.name}</span><div class="project-tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
-          list.appendChild(d);
-        });
+    populateProjects(document.getElementById('projects-list'), PROJECTS);
+    const projRows = Array.from(document.querySelectorAll('.project-row'));
+
+    /* ─── CURSOR & MAGNETIC SETUP ─── */
+    const cursor = document.getElementById('cursor');
+    const isMobileViewport = window.matchMedia('(max-width: 768px)').matches;
+    let cx = 0, cy = 0, tx = 0, ty = 0;
+    let rafC;
+
+    /* Setup Magnetic */
+    const magnetics = document.querySelectorAll('.logo, .nav-links a, .contact-link');
+    magnetics.forEach(el => {
+      el.magneticProps = { x: 0, y: 0, tx: 0, ty: 0 };
+      el.addEventListener('mousemove', (e) => {
+        const rect = el.getBoundingClientRect();
+        const h = rect.width / 2;
+        const v = rect.height / 2;
+        el.magneticProps.tx = (e.clientX - rect.left - h) * 0.4;
+        el.magneticProps.ty = (e.clientY - rect.top - v) * 0.4;
+      });
+      el.addEventListener('mouseleave', () => {
+        el.magneticProps.tx = 0;
+        el.magneticProps.ty = 0;
+      });
+    });
+
+    /* Setup Preview */
+    const previewEl = document.getElementById('project-preview');
+    const previewImg = document.getElementById('project-preview-img');
+    const previewName = document.getElementById('project-preview-name');
+    const previewDesc = document.getElementById('project-preview-desc');
+    let px = 0, py = 0;
+
+    /* ─── INTERACTIVE HERO NAME ─── */
+    const heroWords = document.querySelectorAll('#hero-name .word');
+    const heroLetters = [];
+    const heroLetterBaseCenters = [];
+    let heroReadyCount = 0;
+    function recalcHeroLetterBaseCenters() {
+      heroLetterBaseCenters.length = heroLetters.length;
+      heroLetters.forEach((l, i) => {
+        const rect = l.el.getBoundingClientRect();
+        heroLetterBaseCenters[i] = {
+          cx: rect.left + rect.width / 2,
+          cy: rect.top + rect.height / 2
+        };
+      });
+    }
+
+    heroWords.forEach((wordEl, wIdx) => {
+      const text = wordEl.textContent.trim();
+      wordEl.innerHTML = '';
+      text.split('').forEach((char, cIdx) => {
+        const span = document.createElement('span');
+        span.textContent = char;
+        span.className = 'char';
+        span.style.opacity = '0';
+        span.style.transform = `translateY(60px) rotateX(-60deg)`;
+        wordEl.appendChild(span);
+
+        const letterObj = {
+          el: span,
+          x: 0, y: 0,
+          vx: 0, vy: 0,
+          rx: 0, ry: 0,
+          ready: false
+        };
+        heroLetters.push(letterObj);
+
+        setTimeout(() => {
+          span.style.transition = `opacity 0.9s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1)`;
+          span.style.opacity = '1';
+          span.style.transform = `translateY(0) rotateX(0) rotateY(0) scale(1)`;
+          setTimeout(() => {
+            span.style.transition = '';
+            letterObj.ready = true;
+            heroReadyCount++;
+            if (heroReadyCount === heroLetters.length) {
+              // Measure once after hero settles; subsequent frames use cached base + physics offsets.
+              requestAnimationFrame(recalcHeroLetterBaseCenters);
+            }
+          }, 900);
+        }, 300 + (wIdx * 150) + (cIdx * 50));
+      });
+    });
+
+    window.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
+
+    let lastTx = 0, lastTy = 0;
+    let heroPhysicsTick = 0;
+    let shouldRunUiPhysics = true;
+    function animCursor() {
+      const vx = tx - lastTx;
+      const vy = ty - lastTy;
+      lastTx = tx;
+      lastTy = ty;
+
+      const dist = Math.sqrt(vx * vx + vy * vy);
+      const angle = Math.atan2(vy, vx) * 180 / Math.PI;
+
+      cx += (tx - cx) * 0.45;
+      cy += (ty - cy) * 0.45;
+
+      const stretch = 1 + Math.min(dist / 40, 4);
+      const blur = Math.min(dist / 20, 5);
+
+      cursor.style.transform = `translate(${cx - 5}px, ${cy - 5}px) rotate(${angle}deg) scaleX(${stretch})`;
+      cursor.style.filter = `blur(${blur}px)`;
+
+      px += (tx - px) * 0.08;
+      py += (ty - py) * 0.08;
+      if (previewEl) {
+        previewEl.style.transform = `translate(${px + 20}px, ${py - 100}px)`;
       }
 
-      populateProjects(document.getElementById('projects-list'), PROJECTS);
-      const projRows = Array.from(document.querySelectorAll('.project-row'));
-
-      /* ─── CURSOR & MAGNETIC SETUP ─── */
-      const cursor = document.getElementById('cursor');
-      let cx = 0, cy = 0, tx = 0, ty = 0;
-      let rafC;
-
-      /* Setup Magnetic */
-      const magnetics = document.querySelectorAll('.logo, .nav-links a, .contact-link');
       magnetics.forEach(el => {
-        el.magneticProps = { x: 0, y: 0, tx: 0, ty: 0 };
-        el.addEventListener('mousemove', (e) => {
-          const rect = el.getBoundingClientRect();
-          const h = rect.width / 2;
-          const v = rect.height / 2;
-          el.magneticProps.tx = (e.clientX - rect.left - h) * 0.4;
-          el.magneticProps.ty = (e.clientY - rect.top - v) * 0.4;
-        });
-        el.addEventListener('mouseleave', () => {
-          el.magneticProps.tx = 0;
-          el.magneticProps.ty = 0;
-        });
+        el.magneticProps.x += (el.magneticProps.tx - el.magneticProps.x) * 0.1;
+        el.magneticProps.y += (el.magneticProps.ty - el.magneticProps.y) * 0.1;
+        el.style.transform = `translate(${el.magneticProps.x}px, ${el.magneticProps.y}px)`;
       });
 
-      /* Setup Preview */
-      const previewEl = document.getElementById('project-preview');
-      const previewImg = document.getElementById('project-preview-img');
-      const previewName = document.getElementById('project-preview-name');
-      const previewDesc = document.getElementById('project-preview-desc');
-      let px = 0, py = 0;
-
-      /* ─── INTERACTIVE HERO NAME ─── */
-      const heroWords = document.querySelectorAll('#hero-name .word');
-      const heroLetters = [];
-
-      heroWords.forEach((wordEl, wIdx) => {
-        const text = wordEl.textContent.trim();
-        wordEl.innerHTML = '';
-        text.split('').forEach((char, cIdx) => {
-          const span = document.createElement('span');
-          span.textContent = char;
-          span.className = 'char';
-          span.style.opacity = '0';
-          span.style.transform = `translateY(60px) rotateX(-60deg)`;
-          wordEl.appendChild(span);
-
-          const letterObj = {
-            el: span,
-            x: 0, y: 0,
-            vx: 0, vy: 0,
-            rx: 0, ry: 0,
-            ready: false
-          };
-          heroLetters.push(letterObj);
-
-          setTimeout(() => {
-            span.style.transition = `opacity 0.9s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1)`;
-            span.style.opacity = '1';
-            span.style.transform = `translateY(0) rotateX(0) rotateY(0) scale(1)`;
-            setTimeout(() => {
-              span.style.transition = '';
-              letterObj.ready = true;
-            }, 900);
-          }, 300 + (wIdx * 150) + (cIdx * 50));
-        });
-      });
-
-      window.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
-
-      let lastTx = 0, lastTy = 0;
-      function animCursor() {
-        const vx = tx - lastTx;
-        const vy = ty - lastTy;
-        lastTx = tx;
-        lastTy = ty;
-
-        const dist = Math.sqrt(vx * vx + vy * vy);
-        const angle = Math.atan2(vy, vx) * 180 / Math.PI;
-
-        cx += (tx - cx) * 0.45;
-        cy += (ty - cy) * 0.45;
-
-        const stretch = 1 + Math.min(dist / 40, 4);
-        const blur = Math.min(dist / 20, 5);
-        
-        cursor.style.transform = `translate(${cx - 5}px, ${cy - 5}px) rotate(${angle}deg) scaleX(${stretch})`;
-        cursor.style.filter = `blur(${blur}px)`;
-
-        px += (tx - px) * 0.08;
-        py += (ty - py) * 0.08;
-        if (previewEl) {
-          previewEl.style.transform = `translate(${px + 20}px, ${py - 100}px)`;
-        }
-
-        magnetics.forEach(el => {
-          el.magneticProps.x += (el.magneticProps.tx - el.magneticProps.x) * 0.1;
-          el.magneticProps.y += (el.magneticProps.ty - el.magneticProps.y) * 0.1;
-          el.style.transform = `translate(${el.magneticProps.x}px, ${el.magneticProps.y}px)`;
-        });
-
-        // Hero Letters Physics
-        heroLetters.forEach(l => {
+      const shouldRunHeroPhysics = shouldRunUiPhysics && !isMobileViewport && (heroPhysicsTick++ % 2 === 0);
+      if (shouldRunHeroPhysics) {
+        // Uses cached base rect centers (no per-frame layout reads).
+        heroLetters.forEach((l, idx) => {
           if (!l.ready) return;
+          const base = heroLetterBaseCenters[idx];
+          if (!base) return;
 
-          const rect = l.el.getBoundingClientRect();
-          const cx = rect.left + rect.width / 2;
-          const cy = rect.top + rect.height / 2;
+          const cx = base.cx + l.x;
+          const cy = base.cy + l.y;
 
           const dx = tx - cx;
           const dy = ty - cy;
@@ -932,8 +967,9 @@
           const maxDist = 250;
           if (dist < maxDist) {
             const force = (maxDist - dist) / maxDist;
-            l.vx -= (dx / dist) * force * 1.5;
-            l.vy -= (dy / dist) * force * 1.5;
+            const safeDist = Math.max(0.001, dist);
+            l.vx -= (dx / safeDist) * force * 1.5;
+            l.vy -= (dy / safeDist) * force * 1.5;
 
             l.el.style.color = '#fff';
             l.el.style.textShadow = `0 0 ${force * 40}px var(--accent), 0 0 ${force * 20}px #fff`;
@@ -958,340 +994,694 @@
           const scale = 1 + (dist < maxDist ? ((maxDist - dist) / maxDist) * 0.1 : 0);
           l.el.style.transform = `translate(${l.x}px, ${l.y}px) rotateX(${l.rx}deg) rotateY(${l.ry}deg) scale(${scale})`;
         });
-
-        rafC = requestAnimationFrame(animCursor);
       }
-      animCursor();
 
-      document.querySelectorAll('a, .project-row, .stack-item, .contact-link').forEach(el => {
-        el.addEventListener('mouseenter', () => cursor.classList.add('big'));
-        el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+      rafC = requestAnimationFrame(animCursor);
+    }
+    animCursor();
+
+    // Keep cached hero rects correct after resizes.
+    window.addEventListener('resize', () => {
+      if (!heroLetters.length) return;
+      requestAnimationFrame(recalcHeroLetterBaseCenters);
+    }, { passive: true });
+
+    document.querySelectorAll('a, .project-row, .stack-item, .contact-link').forEach(el => {
+      el.addEventListener('mouseenter', () => cursor.classList.add('big'));
+      el.addEventListener('mouseleave', () => cursor.classList.remove('big'));
+    });
+
+    /* ─── NEXT-GEN THREE.JS COSMIC ENGINE (STARFALL VOYAGE) ─── */
+    const canvas = document.getElementById('star-canvas');
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      alpha: true,
+      antialias: !isMobileViewport,
+      powerPreference: 'high-performance'
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobileViewport ? 1.25 : 1.75));
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.1, 30000);
+    camera.position.set(0, 0, 12000);
+    camera.updateMatrixWorld();
+
+    const createStarTexture = () => {
+      const c = document.createElement('canvas');
+      c.width = 64; c.height = 64;
+      const x = c.getContext('2d');
+      const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.2, 'rgba(255,255,255,0.8)');
+      g.addColorStop(0.5, 'rgba(255,255,255,0.2)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g;
+      x.fillRect(0, 0, 64, 64);
+      return new THREE.CanvasTexture(c);
+    };
+
+    const PERF_CONFIG = {
+      fallStartSpeed: 190,
+      stableSpeed: 1.4,
+      fallDurationMs: 3200,
+      fallFov: 92,
+      fallCameraStartZ: 14000,
+      fallCameraEndZ: -2200,
+      stableCameraZ: -2600,
+      stableCameraHoverRadius: 280,
+      stableCameraHoverSpeed: 0.35,
+      stableLookAtOffsetY: 950,
+      stableLookAtLerp: 0.10,
+      bhDiveDurationMs: 1200,
+      bhDiveEndZ: -7600,
+      warpDurationMs: 2200,
+      warpSpeed: 520,
+      warpFov: 105,
+      warpStarSize: 9.5,
+      warpStarOpacity: 0.95,
+      cruiseSpeed: 3.2,
+      cruiseFov: 68,
+      cruiseCameraHoverRadius: 110,
+      cruiseCameraHoverSpeed: 0.22,
+      modelLoadCooldownMs: 180,
+      starChunksInFall: 3,
+      starChunksInStable: 1,
+      cameraShakeMax: 1.6,
+      spacerockAbsorbDistance: 260
+    };
+
+    const SCENE_PHASE = {
+      BOOT: 'boot',
+      FALL: 'fall',
+      STABLE: 'stable',
+      BH_DIVE: 'bh_dive',
+      WARP: 'warp',
+      CRUISE: 'cruise'
+    };
+
+    let scenePhase = SCENE_PHASE.BOOT;
+    let scenePhaseStartedAt = performance.now();
+    let speed = 0;
+    const cameraBasePos = new THREE.Vector3(0, 0, PERF_CONFIG.fallCameraStartZ);
+    const cameraShakeOffset = new THREE.Vector3();
+    const lookAtTarget = new THREE.Vector3();
+    const desiredLookAt = new THREE.Vector3();
+    let stableHoverT = 0;
+    let defaultStarSize = 3.0;
+    let defaultStarOpacity = 0.85;
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    sunLight.position.set(5, 3, 5);
+    scene.add(sunLight);
+
+    // ── STARFIELD ──
+    const starCount = isMobileViewport ? 16000 : 32000;
+    const starGeometry = new THREE.BufferGeometry();
+    const starPositions = new Float32Array(starCount * 3);
+    const STAR_FIELD = {
+      radius: 5200,
+      depth: 30000
+    };
+    function spawnStarAt(index, z) {
+      // Radial distribution avoids visible square bounds in the center.
+      const angle = Math.random() * Math.PI * 2;
+      const r = Math.sqrt(Math.random()) * STAR_FIELD.radius;
+      starPositions[index] = Math.cos(angle) * r;
+      starPositions[index + 1] = Math.sin(angle) * r;
+      starPositions[index + 2] = z;
+    }
+    function reseedStarsInFrontOfCamera() {
+      // Exact fix: keep stars predominantly in front of the camera (looking down -Z),
+      // otherwise after the blackhole transition many stars end up behind the camera.
+      const camZ = camera.position.z;
+      for (let i = 0; i < starCount * 3; i += 3) {
+        spawnStarAt(i, camZ - (Math.random() * STAR_FIELD.depth));
+      }
+      starPositionAttr.needsUpdate = true;
+    }
+    const starPositionAttr = new THREE.BufferAttribute(starPositions, 3);
+    starPositionAttr.setUsage(THREE.DynamicDrawUsage);
+    starGeometry.setAttribute('position', starPositionAttr);
+    reseedStarsInFrontOfCamera();
+    const starMaterial = new THREE.PointsMaterial({
+      color: 0xffffff, size: 3.0, transparent: true, opacity: 0.85,
+      map: createStarTexture(), alphaTest: 0.01, sizeAttenuation: true
+    });
+    defaultStarSize = starMaterial.size;
+    defaultStarOpacity = starMaterial.opacity;
+    const stars = new THREE.Points(starGeometry, starMaterial);
+    scene.add(stars);
+
+    // ── 3D MODELS (Peripheral Placement) ──
+    const loader = new GLTFLoader();
+    const objects = [];
+    const ASSETS = [
+      { name: 'Mercury', url: '/planets/mercury/mercury.glb', pos: [-9800, 1200, -21000], scale: 55 },
+      { name: 'Earth', url: '/planets/earth/earth.glb', pos: [-12500, 3400, -26000], scale: 80 },
+      { name: 'Moon', url: '/planets/moon/moon.glb', pos: [-11200, 3600, -24000], scale: 35 },
+      { name: 'Venus', url: '/planets/venus/venus.glb', pos: [9200, 2100, -23500], scale: 75 },
+      { name: 'Jupiter', url: '/planets/jupiter/jupiter.glb', pos: [15500, -4200, -32000], scale: 350 },
+      { name: 'Saturn', url: '/planets/saturn/saturno.glb', pos: [14000, 2600, -30000], scale: 280 },
+      { name: 'Uranus', url: '/planets/uranus/uranus.glb', pos: [-15000, -2600, -33000], scale: 180 },
+      { name: 'Neptune', url: '/planets/neptune/neptune.glb', pos: [12000, -1800, -35000], scale: 170 },
+      { name: 'Sun', url: '/planets/sun/sun.glb', pos: [0, 8200, -36000], scale: 900 },
+      { name: 'Mars', url: '/planets/mars/mars.glb', pos: [8600, 5100, -18000], scale: 50 },
+      { name: 'Spacerocks', url: '/planets/spacerocks/spacerocks.glb', pos: [-8200, -3200, -14000], scale: 40 },
+      { name: 'Blackhole', url: '/planets/blackhole/blackhole.glb', pos: [0, -1600, -7000], scale: 3800 }
+    ];
+
+    const BLACKHOLE_TARGET = {
+      position: new THREE.Vector3(0, -1600, -7000),
+      scale: 3800,
+      spinSpeed: 0.0042,
+      settleLerp: 0.08
+    };
+    let blackholeMesh = null;
+    const tmpToBlackhole = new THREE.Vector3();
+    const flyby = {
+      active: false,
+      mesh: null,
+      t: 0,
+      durationMs: 2600,
+      start: new THREE.Vector3(),
+      end: new THREE.Vector3(),
+      spin: 0.008
+    };
+    let lastFlybyAt = performance.now();
+
+    function loadAsset(asset) {
+      return new Promise((resolve, reject) => {
+        loader.load(
+          asset.url,
+          (gltf) => {
+            const model = gltf.scene;
+            model.position.set(...asset.pos);
+            model.scale.setScalar(asset.scale);
+            scene.add(model);
+            const isBlackhole = asset.name === 'Blackhole';
+            objects.push({
+              mesh: model,
+              name: asset.name,
+              isBlackhole,
+              rotSpeed: isBlackhole ? BLACKHOLE_TARGET.spinSpeed : Math.random() * 0.008 + 0.002,
+              driftX: (Math.random() - 0.5) * 0.7,
+              driftY: (Math.random() - 0.5) * 0.4
+            });
+            if (isBlackhole) blackholeMesh = model;
+            resolve();
+          },
+          undefined,
+          reject
+        );
+      });
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    function requestIdle(cb, timeout = 800) {
+      if ('requestIdleCallback' in window) {
+        return window.requestIdleCallback(cb, { timeout });
+      }
+      return window.setTimeout(() => cb({ didTimeout: true, timeRemaining: () => 0 }), 0);
+    }
+
+    function startFallPhase() {
+      scenePhase = SCENE_PHASE.FALL;
+      scenePhaseStartedAt = performance.now();
+      speed = PERF_CONFIG.fallStartSpeed;
+      camera.fov = PERF_CONFIG.fallFov;
+      camera.updateProjectionMatrix();
+      cameraBasePos.set(0, 0, PERF_CONFIG.fallCameraStartZ);
+    }
+
+    function startBhDivePhase() {
+      scenePhase = SCENE_PHASE.BH_DIVE;
+      scenePhaseStartedAt = performance.now();
+      // Keep current FOV; we'll tighten into the blackhole with camera movement.
+    }
+
+    function startWarpPhase() {
+      scenePhase = SCENE_PHASE.WARP;
+      scenePhaseStartedAt = performance.now();
+      speed = PERF_CONFIG.warpSpeed;
+      camera.fov = PERF_CONFIG.warpFov;
+      camera.updateProjectionMatrix();
+      // Ensure dense stars after blackhole transition.
+      reseedStarsInFrontOfCamera();
+      starChunkCursor = 0;
+    }
+
+    function startCruisePhase() {
+      scenePhase = SCENE_PHASE.CRUISE;
+      scenePhaseStartedAt = performance.now();
+      speed = PERF_CONFIG.cruiseSpeed;
+      camera.fov = PERF_CONFIG.cruiseFov;
+      camera.updateProjectionMatrix();
+      lastFlybyAt = performance.now();
+      // Keep star density consistent in CRUISE.
+      reseedStarsInFrontOfCamera();
+      // Hide all non-blackhole meshes; in CRUISE we only show planets during flybys.
+      objects.forEach(o => {
+        if (!o.isBlackhole) o.mesh.visible = false;
+      });
+    }
+
+    // Load blackhole ASAP (to start FALL), defer other GLBs until after intro settles.
+    async function loadBlackholeThenLazyLoadOthers() {
+      const blackhole = ASSETS.find(a => a.name === 'Blackhole');
+      const others = ASSETS.filter(a => a.name !== 'Blackhole');
+
+      if (blackhole) {
+        try {
+          await loadAsset(blackhole);
+          if (scenePhase === SCENE_PHASE.BOOT) startFallPhase();
+        } catch (error) {
+          console.error('Failed to load asset: Blackhole', error);
+        }
+      }
+
+      // Wait until stable (or timeout) then load the rest during idle slices.
+      const stableWaitStarted = performance.now();
+      while (scenePhase !== SCENE_PHASE.STABLE && (performance.now() - stableWaitStarted) < 9000) {
+        await wait(120);
+      }
+
+      let idx = 0;
+      const pump = () => {
+        requestIdle(async () => {
+          // Load at most one per idle slice to avoid jank.
+          const asset = others[idx++];
+          if (!asset) return;
+          try {
+            await loadAsset(asset);
+          } catch (error) {
+            console.error(`Failed to load asset: ${asset.name}`, error);
+          }
+          await wait(PERF_CONFIG.modelLoadCooldownMs);
+          pump();
+        }, 900);
+      };
+      pump();
+    }
+
+    // Defer model loading until first paint to reduce startup hitching.
+    requestAnimationFrame(() => loadBlackholeThenLazyLoadOthers());
+
+    let tmx = 0, tmy = 0, mx = 0, my = 0;
+    window.addEventListener('mousemove', e => {
+      tmx = (e.clientX / window.innerWidth - 0.5) * 2;
+      tmy = (e.clientY / window.innerHeight - 0.5) * 2;
+    });
+
+    function resize() {
+      const w = window.innerWidth, h = window.innerHeight;
+      renderer.setSize(w, h);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    let frameCounter = 0;
+    let starChunkCursor = 0;
+    let lastFrameAt = performance.now();
+    function animate() {
+      requestAnimationFrame(animate);
+      frameCounter++;
+      const nowMs = performance.now();
+      const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastFrameAt) / 1000));
+      lastFrameAt = nowMs;
+
+      if (scenePhase === SCENE_PHASE.FALL) {
+        const elapsedInPhase = performance.now() - scenePhaseStartedAt;
+        const progress = Math.min(1, elapsedInPhase / PERF_CONFIG.fallDurationMs);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        speed = THREE.MathUtils.lerp(PERF_CONFIG.fallStartSpeed, PERF_CONFIG.stableSpeed, eased);
+        camera.fov = THREE.MathUtils.lerp(PERF_CONFIG.fallFov, 60, eased);
+        camera.updateProjectionMatrix();
+        cameraBasePos.z = THREE.MathUtils.lerp(PERF_CONFIG.fallCameraStartZ, PERF_CONFIG.fallCameraEndZ, eased);
+        if (progress >= 1) {
+          speed = PERF_CONFIG.stableSpeed;
+          scenePhase = SCENE_PHASE.STABLE;
+          stableHoverT = 0;
+        }
+      } else if (scenePhase === SCENE_PHASE.STABLE) {
+        speed = PERF_CONFIG.stableSpeed;
+        stableHoverT += 0.016;
+        cameraBasePos.z += (PERF_CONFIG.stableCameraZ - cameraBasePos.z) * 0.05;
+        // After a brief hang near the blackhole, dive into it.
+        if ((performance.now() - scenePhaseStartedAt) > 220) {
+          startBhDivePhase();
+        }
+      } else if (scenePhase === SCENE_PHASE.BH_DIVE) {
+        const elapsed = performance.now() - scenePhaseStartedAt;
+        const p = Math.min(1, elapsed / PERF_CONFIG.bhDiveDurationMs);
+        const eased = 1 - Math.pow(1 - p, 3);
+        // Accelerate camera through the blackhole plane.
+        cameraBasePos.z = THREE.MathUtils.lerp(PERF_CONFIG.stableCameraZ, PERF_CONFIG.bhDiveEndZ, eased);
+        // Fade blackhole out as we "enter" it.
+        if (blackholeMesh) blackholeMesh.visible = p < 0.92;
+        if (p >= 1) {
+          if (blackholeMesh) blackholeMesh.visible = false;
+          startWarpPhase();
+        }
+      } else if (scenePhase === SCENE_PHASE.WARP) {
+        const elapsed = performance.now() - scenePhaseStartedAt;
+        const p = Math.min(1, elapsed / PERF_CONFIG.warpDurationMs);
+        const eased = 1 - Math.pow(1 - p, 3);
+        speed = THREE.MathUtils.lerp(PERF_CONFIG.warpSpeed, PERF_CONFIG.cruiseSpeed, eased);
+        camera.fov = THREE.MathUtils.lerp(PERF_CONFIG.warpFov, PERF_CONFIG.cruiseFov, eased);
+        camera.updateProjectionMatrix();
+        if (p >= 1) startCruisePhase();
+      } else if (scenePhase === SCENE_PHASE.CRUISE) {
+        speed = PERF_CONFIG.cruiseSpeed;
+        stableHoverT += 0.0105;
+      }
+
+      // Lighting tone by phase (avoid warm/yellow tint after blackhole).
+      if (scenePhase === SCENE_PHASE.WARP) {
+        sunLight.color.setHex(0xd7e6ff);
+        sunLight.intensity += (0.65 - sunLight.intensity) * 0.08;
+      } else if (scenePhase === SCENE_PHASE.CRUISE) {
+        sunLight.color.setHex(0xffffff);
+        sunLight.intensity += (0.85 - sunLight.intensity) * 0.06;
+      } else {
+        sunLight.color.setHex(0xffffff);
+        sunLight.intensity += (1.0 - sunLight.intensity) * 0.06;
+      }
+
+      // Camera shake is applied as an offset on top of the base path (never hard-resets position).
+      cameraShakeOffset.set(0, 0, 0);
+      if (scenePhase === SCENE_PHASE.FALL && speed > 10) {
+        const shake = Math.min(PERF_CONFIG.cameraShakeMax, speed * 0.006);
+        cameraShakeOffset.x = (Math.random() - 0.5) * shake;
+        cameraShakeOffset.y = (Math.random() - 0.5) * shake;
+      }
+
+      // Mouse influence (small) + stable hover orbit.
+      mx += (tmx - mx) * 0.05;
+      my += (tmy - my) * 0.05;
+      const hover = (scenePhase === SCENE_PHASE.STABLE)
+        ? PERF_CONFIG.stableCameraHoverRadius
+        : (scenePhase === SCENE_PHASE.CRUISE ? PERF_CONFIG.cruiseCameraHoverRadius : 0);
+      const hoverSpeed = (scenePhase === SCENE_PHASE.STABLE)
+        ? PERF_CONFIG.stableCameraHoverSpeed
+        : (scenePhase === SCENE_PHASE.CRUISE ? PERF_CONFIG.cruiseCameraHoverSpeed : PERF_CONFIG.stableCameraHoverSpeed);
+      const orbitX = hover ? Math.cos(stableHoverT * hoverSpeed) * hover : 0;
+      const orbitY = hover ? Math.sin(stableHoverT * hoverSpeed * 1.15) * (hover * 0.55) : 0;
+
+      camera.position.set(
+        cameraBasePos.x + cameraShakeOffset.x + orbitX + (mx * 85),
+        cameraBasePos.y + cameraShakeOffset.y + orbitY + (-my * 55),
+        cameraBasePos.z
+      );
+
+      // Look-at behavior: during FALL ramp-in gently, then fully in STABLE.
+      if (blackholeMesh) {
+        desiredLookAt.copy(blackholeMesh.position);
+      } else {
+        desiredLookAt.copy(BLACKHOLE_TARGET.position);
+      }
+      // Framing: looking slightly ABOVE the blackhole makes it sit lower on screen.
+      if (scenePhase === SCENE_PHASE.STABLE || scenePhase === SCENE_PHASE.FALL) {
+        desiredLookAt.y += PERF_CONFIG.stableLookAtOffsetY;
+      } else {
+        // After the blackhole, look forward into the star flow (keeps cruise cinematic).
+        desiredLookAt.set(camera.position.x * 0.25, camera.position.y * 0.25, camera.position.z - 9000);
+      }
+
+      const lookAtStrength = scenePhase === SCENE_PHASE.FALL
+        ? THREE.MathUtils.clamp((performance.now() - scenePhaseStartedAt) / 900, 0, 1)
+        : 1;
+      lookAtTarget.lerp(desiredLookAt, PERF_CONFIG.stableLookAtLerp * lookAtStrength);
+      camera.lookAt(lookAtTarget);
+
+      const pos = starGeometry.attributes.position.array;
+      // Star visuals by phase (warp = streaky tunnel feel).
+      if (scenePhase === SCENE_PHASE.WARP) {
+        starMaterial.size += (PERF_CONFIG.warpStarSize - starMaterial.size) * 0.12;
+        starMaterial.opacity += (PERF_CONFIG.warpStarOpacity - starMaterial.opacity) * 0.10;
+      } else {
+        const targetSize = (scenePhase === SCENE_PHASE.CRUISE) ? 5.4 : defaultStarSize;
+        const targetOpacity = (scenePhase === SCENE_PHASE.CRUISE) ? 1.0 : defaultStarOpacity;
+        starMaterial.size += (targetSize - starMaterial.size) * 0.08;
+        starMaterial.opacity += (targetOpacity - starMaterial.opacity) * 0.06;
+      }
+
+      const starChunks =
+        (scenePhase === SCENE_PHASE.FALL || scenePhase === SCENE_PHASE.WARP)
+          ? PERF_CONFIG.starChunksInFall
+          : PERF_CONFIG.starChunksInStable;
+      const chunkStep = speed * Math.max(1, starChunks);
+      for (let s = starChunkCursor; s < starCount; s += starChunks) {
+        const i3 = s * 3;
+        const zIndex = i3 + 2;
+        pos[zIndex] += chunkStep;
+        // Wrap relative to camera to keep a constant star density around the viewer.
+        if (pos[zIndex] > (camera.position.z + 2000)) {
+          spawnStarAt(i3, camera.position.z - STAR_FIELD.depth);
+        }
+      }
+      starChunkCursor = (starChunkCursor + 1) % starChunks;
+      starGeometry.attributes.position.needsUpdate = true;
+
+      // UI physics is expensive; keep it off during cinematic phases.
+      shouldRunUiPhysics = scenePhase === SCENE_PHASE.CRUISE;
+
+      objects.forEach(obj => {
+        if (obj.isBlackhole) {
+          // Keep blackhole fixed near the viewer and below screen.
+          obj.mesh.position.lerp(BLACKHOLE_TARGET.position, BLACKHOLE_TARGET.settleLerp);
+          const nextScale = THREE.MathUtils.lerp(obj.mesh.scale.x, BLACKHOLE_TARGET.scale, 0.04);
+          obj.mesh.scale.setScalar(nextScale);
+          obj.mesh.rotation.y += obj.rotSpeed;
+          return;
+        }
+
+        if (scenePhase === SCENE_PHASE.BOOT) return;
+        if (scenePhase === SCENE_PHASE.CRUISE) {
+          // In CRUISE, only the flyby planet is visible/animated.
+          if (flyby.active && flyby.mesh === obj.mesh) return;
+          obj.mesh.visible = false;
+          return;
+        }
+        if (scenePhase === SCENE_PHASE.FALL && obj.mesh.position.z < -18000 && (frameCounter % 2 !== 0)) {
+          return;
+        }
+
+        if (scenePhase === SCENE_PHASE.STABLE && blackholeMesh) {
+          if (obj.name === 'Spacerocks') {
+            tmpToBlackhole.subVectors(blackholeMesh.position, obj.mesh.position);
+            const distance = tmpToBlackhole.length();
+            tmpToBlackhole.normalize();
+            const pullStep = Math.min(18, Math.max(2.5, distance * 0.03));
+            obj.mesh.position.addScaledVector(tmpToBlackhole, pullStep);
+
+            // Only spacerocks can be swallowed; respawn far away after absorption.
+            if (distance < PERF_CONFIG.spacerockAbsorbDistance) {
+              obj.mesh.position.set(
+                -12000 + Math.random() * 24000,
+                -4500 + Math.random() * 9000,
+                -30000 - Math.random() * 12000
+              );
+            }
+          } else {
+            // Keep major planets far and drifting in space; do not pull into blackhole.
+            obj.mesh.position.x += obj.driftX;
+            obj.mesh.position.y += obj.driftY;
+            if (obj.mesh.position.x > 18000) obj.mesh.position.x = -18000;
+            if (obj.mesh.position.x < -18000) obj.mesh.position.x = 18000;
+            if (obj.mesh.position.y > 7000) obj.mesh.position.y = -7000;
+            if (obj.mesh.position.y < -7000) obj.mesh.position.y = 7000;
+          }
+        } else {
+          obj.mesh.position.z += speed * 0.9;
+          if (obj.mesh.position.z > 2000) obj.mesh.position.z = -28000;
+        }
+
+        obj.mesh.rotation.y += obj.rotSpeed;
       });
 
-      /* ─── COSMIC STARFIELD ENGINE ─── */
-      const canvas = document.getElementById('orb-canvas');
-      const ctx = canvas.getContext('2d');
-      let W, H;
-      let mx = 0, my = 0, tmx = 0, tmy = 0;
+      // Occasional cinematic planet flybys during CRUISE.
+      if (scenePhase === SCENE_PHASE.CRUISE) {
+        const now = performance.now();
+        if (!flyby.active && (now - lastFlybyAt) > (6500 + Math.random() * 5500)) {
+          const candidates = objects
+            .filter(o => !o.isBlackhole && o.name !== 'Spacerocks')
+            .map(o => o.mesh);
+          if (candidates.length) {
+            flyby.mesh = candidates[(Math.random() * candidates.length) | 0];
+            flyby.active = true;
+            flyby.t = 0;
+            flyby.durationMs = 4200 + Math.random() * 2400;
+            flyby.spin = 0.006 + Math.random() * 0.01;
 
-      const stars = [];
-      const numStars = 280;
-      const shootingStars = [];
-      const planets = [];
-
-      class Planet {
-        constructor() {
-          this.init();
+            // Start offscreen-ish and sweep across.
+            const side = Math.random() < 0.5 ? -1 : 1;
+            flyby.start.set(5200 * side, -900 + (Math.random() * 1800), -26000);
+            flyby.end.set(-4200 * side, -200 + (Math.random() * 1200), -7000);
+            flyby.mesh.position.copy(flyby.start);
+            flyby.mesh.visible = true;
+            lastFlybyAt = now;
+          }
         }
-        init() {
-          this.x = Math.random() * window.innerWidth;
-          this.y = Math.random() * window.innerHeight;
-          this.size = 15 + Math.random() * 40;
-          this.z = 0.2 + Math.random() * 0.5; // Very deep parallax
-          this.color = Math.random() > 0.5 ? 'rgba(124, 109, 250, 0.4)' : 'rgba(250, 109, 143, 0.3)';
-          this.hasRing = Math.random() > 0.7;
-          this.rotation = Math.random() * Math.PI * 2;
-        }
-        update() {
-          this.y -= 0.02 * this.z;
-          if (this.y < -this.size * 2) this.y = H + this.size;
-        }
-        draw() {
-          const px = (mx * 40) * this.z;
-          const py = (my * 40) * this.z;
-          const tx = this.x + px;
-          const ty = this.y + py;
 
-          // Planet Body
-          const grad = ctx.createRadialGradient(tx - this.size * 0.3, ty - this.size * 0.3, this.size * 0.1, tx, ty, this.size);
-          grad.addColorStop(0, this.color);
-          grad.addColorStop(1, 'rgba(10, 10, 15, 0.8)');
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(tx, ty, this.size, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Ring
-          if (this.hasRing) {
-            ctx.strokeStyle = this.color;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.ellipse(tx, ty, this.size * 2.2, this.size * 0.6, this.rotation, 0, Math.PI * 2);
-            ctx.stroke();
+        if (flyby.active && flyby.mesh) {
+          flyby.t += (dt * 1000) / flyby.durationMs;
+          const p = Math.min(1, flyby.t);
+          const eased = 1 - Math.pow(1 - p, 3);
+          flyby.mesh.position.lerpVectors(flyby.start, flyby.end, eased);
+          flyby.mesh.rotation.y += flyby.spin;
+          flyby.mesh.rotation.x += flyby.spin * 0.35;
+          if (p >= 1) {
+            // Respawn far away so it can reappear later naturally.
+            flyby.mesh.position.set(
+              -14000 + Math.random() * 28000,
+              -5000 + Math.random() * 10000,
+              -32000 - Math.random() * 12000
+            );
+            flyby.mesh.visible = false;
+            flyby.active = false;
+            flyby.mesh = null;
           }
         }
       }
 
-      class Star {
-        constructor() {
-          this.init();
-        }
-        init() {
-          this.x = Math.random() * window.innerWidth;
-          this.y = Math.random() * window.innerHeight;
-          this.z = Math.random() * 2;
-          this.size = Math.random() * 1.5;
-          this.opacity = 0.1 + Math.random() * 0.7;
-          this.pulse = 0.005 + Math.random() * 0.02;
-          this.pulseDir = 1;
-        }
-        update() {
-          this.y -= 0.05 * this.z;
-          if (this.y < 0) this.y = H;
+      renderer.render(scene, camera);
+    }
+    animate();
 
-          this.opacity += this.pulse * this.pulseDir;
-          if (this.opacity > 0.9 || this.opacity < 0.1) this.pulseDir *= -1;
-        }
-        draw() {
-          const px = (mx * 80) * this.z;
-          const py = (my * 80) * this.z;
 
-          ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
-          ctx.beginPath();
-          ctx.arc(this.x + px, this.y + py, this.size, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      class ShootingStar {
-        constructor() {
-          this.reset();
-        }
-        reset() {
-          this.side = Math.random() > 0.5 ? 1 : -1;
-          this.x = this.side === 1 ? -100 : W + 100;
-          this.y = Math.random() * H * 0.6;
-          this.len = 80 + Math.random() * 120;
-          this.speed = (12 + Math.random() * 18) * this.side;
-          this.angle = (Math.random() * 0.2 + 0.1) * (Math.random() > 0.5 ? 1 : -1);
-          this.opacity = 0;
-          this.active = false;
-          this.wait = 50 + Math.random() * 300;
-        }
-        update() {
-          if (!this.active) {
-            this.wait--;
-            if (this.wait <= 0) this.active = true;
-            return;
-          }
-          this.x += this.speed;
-          this.y += Math.abs(this.speed) * this.angle;
-          this.opacity = Math.sin((Math.abs(this.speed) / 30) * Math.PI);
-          if ((this.side === 1 && this.x > W + 200) || (this.side === -1 && this.x < -200)) this.reset();
-        }
-        draw() {
-          if (!this.active) return;
-          const grad = ctx.createLinearGradient(this.x, this.y, this.x - (this.len * (this.side)), this.y - (this.len * this.angle));
-          grad.addColorStop(0, `rgba(255, 255, 255, ${this.opacity})`);
-          grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 2;
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(this.x, this.y);
-          ctx.lineTo(this.x - (this.len * (this.side)), this.y - (this.len * this.angle));
-          ctx.stroke();
-        }
-      }
-
-      function initStars() {
-        stars.length = 0;
-        for (let i = 0; i < numStars; i++) stars.push(new Star());
-        shootingStars.length = 0;
-        for (let i = 0; i < 3; i++) shootingStars.push(new ShootingStar());
-        planets.length = 0;
-        for (let i = 0; i < 4; i++) planets.push(new Planet());
-      }
-
-      function resize() {
-        W = canvas.width = window.innerWidth;
-        H = canvas.height = window.innerHeight;
-        initStars();
-      }
-      resize();
-      window.addEventListener('resize', resize);
-
-      window.addEventListener('mousemove', e => {
-        tmx = (e.clientX / window.innerWidth) - 0.5;
-        tmy = (e.clientY / window.innerHeight) - 0.5;
+    /* ─── SCROLL-DRIVEN ABOUT REVEAL ─── */
+    const aboutSection = document.getElementById('about');
+    function updateAboutWords() {
+      const rect = aboutSection.getBoundingClientRect();
+      const progress = Math.max(0, Math.min(1, 1 - rect.top / (window.innerHeight * 0.7)));
+      words.forEach((w, i) => {
+        const threshold = i / words.length;
+        w.classList.toggle('lit', progress > threshold);
       });
+    }
 
-      function drawCosmos() {
-        mx += (tmx - mx) * 0.05;
-        my += (tmy - my) * 0.05;
-
-        ctx.clearRect(0, 0, W, H);
-
-        // 1. Draw Nebula Background
-        const gradX = W * (0.5 + mx * 0.5);
-        const gradY = H * (0.5 + my * 0.5);
-
-        const g1 = ctx.createRadialGradient(gradX, gradY, 0, gradX, gradY, W * 0.8);
-        g1.addColorStop(0, 'rgba(124, 109, 250, 0.08)');
-        g1.addColorStop(1, 'rgba(124, 109, 250, 0)');
-        ctx.fillStyle = g1;
-        ctx.fillRect(0, 0, W, H);
-
-        const g2 = ctx.createRadialGradient(W - gradX, H - gradY, 0, W - gradX, H - gradY, W * 0.6);
-        g2.addColorStop(0, 'rgba(250, 109, 143, 0.05)');
-        g2.addColorStop(1, 'rgba(250, 109, 143, 0)');
-        ctx.fillStyle = g2;
-        ctx.fillRect(0, 0, W, H);
-
-        // 2. Draw Planets (Deepest)
-        planets.forEach(p => {
-          p.update();
-          p.draw();
-        });
-
-        // 3. Draw Stars
-        stars.forEach(s => {
-          s.update();
-          s.draw();
-        });
-
-        // 4. Draw Shooting Stars
-        shootingStars.forEach(s => {
-          s.update();
-          s.draw();
-        });
-
-        requestAnimationFrame(drawCosmos);
-      }
-      drawCosmos();
-
-      /* ─── SCROLL-DRIVEN ABOUT REVEAL ─── */
-      const aboutSection = document.getElementById('about');
-      function updateAboutWords() {
-        const rect = aboutSection.getBoundingClientRect();
-        const progress = Math.max(0, Math.min(1, 1 - rect.top / (window.innerHeight * 0.7)));
-        words.forEach((w, i) => {
-          const threshold = i / words.length;
-          w.classList.toggle('lit', progress > threshold);
-        });
-      }
-
-      /* ─── SECTION LINE DRAW ─── */
-      const sectionLines = Array.from(document.querySelectorAll('.section-line'));
-      function checkLines() {
-        sectionLines.forEach(line => {
-          const rect = line.getBoundingClientRect();
-          if (rect.top < window.innerHeight * 0.85) line.classList.add('drawn');
-        });
-      }
-
-      /* ─── LABEL REVEAL ─── */
-      const labels = Array.from(document.querySelectorAll('.label'));
-      function checkLabels() {
-        labels.forEach(l => {
-          if (l.getBoundingClientRect().top < window.innerHeight * 0.85) l.classList.add('vis');
-        });
-      }
-
-      /* ─── STACK ITEMS ─── */
-      function checkStack() {
-        stackItems.forEach(item => {
-          if (item.getBoundingClientRect().top < window.innerHeight * 0.88) item.classList.add('vis');
-        });
-      }
-
-      /* ─── PROJECT ROWS ─── */
-      function checkProjects() {
-        projRows.forEach(row => {
-          if (row.getBoundingClientRect().top < window.innerHeight * 0.88) row.classList.add('vis');
-        });
-      }
-
-      /* ─── TEXT SCRAMBLE ON HOVER (project names) ─── */
-      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      projRows.forEach(row => {
-        const nameEl = row.querySelector('.project-name');
-        const original = nameEl.textContent;
-        const targetHover = row.dataset.hover;
-        const imageUrl = row.dataset.image;
-        const pName = row.dataset.name;
-        const pDesc = row.dataset.desc;
-        let frame = 0, total = 12, raf;
-
-        row.addEventListener('mouseenter', () => {
-          if (imageUrl && previewImg && previewEl) {
-            previewImg.src = imageUrl;
-            previewName.textContent = pName;
-            previewDesc.textContent = pDesc;
-            previewEl.classList.add('active');
-          }
-
-          cancelAnimationFrame(raf);
-          frame = 0;
-          function scramble() {
-            const progress = frame / total;
-            nameEl.textContent = targetHover.split('').map((ch, i) => {
-              if (ch === ' ') return ' ';
-              if (i / targetHover.length < progress) return targetHover[i];
-              return chars[Math.floor(Math.random() * chars.length)];
-            }).join('');
-            frame++;
-            if (frame <= total) raf = requestAnimationFrame(scramble);
-            else nameEl.textContent = targetHover;
-          }
-          scramble();
-        });
-        row.addEventListener('mouseleave', () => {
-          if (previewEl) previewEl.classList.remove('active');
-
-          cancelAnimationFrame(raf);
-          frame = 0;
-          function unscramble() {
-            const progress = frame / total;
-            nameEl.textContent = original.split('').map((ch, i) => {
-              if (ch === ' ') return ' ';
-              if (i / original.length < progress) return original[i];
-              return chars[Math.floor(Math.random() * chars.length)];
-            }).join('');
-            frame++;
-            if (frame <= total) raf = requestAnimationFrame(unscramble);
-            else nameEl.textContent = original;
-          }
-          unscramble();
-        });
+    /* ─── SECTION LINE DRAW ─── */
+    const sectionLines = Array.from(document.querySelectorAll('.section-line'));
+    function checkLines() {
+      sectionLines.forEach(line => {
+        const rect = line.getBoundingClientRect();
+        if (rect.top < window.innerHeight * 0.85) line.classList.add('drawn');
       });
+    }
 
-      /* ─── MAGNETIC HOVER (stack items) ─── */
+    /* ─── LABEL REVEAL ─── */
+    const labels = Array.from(document.querySelectorAll('.label'));
+    function checkLabels() {
+      labels.forEach(l => {
+        if (l.getBoundingClientRect().top < window.innerHeight * 0.85) l.classList.add('vis');
+      });
+    }
+
+    /* ─── STACK ITEMS ─── */
+    function checkStack() {
       stackItems.forEach(item => {
-        item.addEventListener('mousemove', e => {
-          const r = item.getBoundingClientRect();
-          const dx = (e.clientX - (r.left + r.width / 2)) * 0.15;
-          const dy = (e.clientY - (r.top + r.height / 2)) * 0.3;
-          item.style.transform = `translate(${dx}px, ${dy}px)`;
-        });
-        item.addEventListener('mouseleave', () => {
-          item.style.transform = '';
-        });
+        if (item.getBoundingClientRect().top < window.innerHeight * 0.88) item.classList.add('vis');
       });
+    }
 
-      /* ─── RAF SCROLL LOOP ─── */
-      let lastScroll = -1;
-      function onFrame() {
-        const sy = window.scrollY;
-        if (sy !== lastScroll) {
-          lastScroll = sy;
-          updateAboutWords();
-          checkLines();
-          checkLabels();
-          checkStack();
-          checkProjects();
+    /* ─── PROJECT ROWS ─── */
+    function checkProjects() {
+      projRows.forEach(row => {
+        if (row.getBoundingClientRect().top < window.innerHeight * 0.88) row.classList.add('vis');
+      });
+    }
+
+    /* ─── TEXT SCRAMBLE ON HOVER (project names) ─── */
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    projRows.forEach(row => {
+      const nameEl = row.querySelector('.project-name');
+      const original = nameEl.textContent;
+      const targetHover = row.dataset.hover;
+      const imageUrl = row.dataset.image;
+      const pName = row.dataset.name;
+      const pDesc = row.dataset.desc;
+      let frame = 0, total = 12, raf;
+
+      row.addEventListener('mouseenter', () => {
+        if (imageUrl && previewImg && previewEl) {
+          previewImg.src = imageUrl;
+          previewName.textContent = pName;
+          previewDesc.textContent = pDesc;
+          previewEl.classList.add('active');
         }
-        requestAnimationFrame(onFrame);
-      }
-      requestAnimationFrame(onFrame);
 
-      // Initial check
+        cancelAnimationFrame(raf);
+        frame = 0;
+        function scramble() {
+          const progress = frame / total;
+          nameEl.textContent = targetHover.split('').map((ch, i) => {
+            if (ch === ' ') return ' ';
+            if (i / targetHover.length < progress) return targetHover[i];
+            return chars[Math.floor(Math.random() * chars.length)];
+          }).join('');
+          frame++;
+          if (frame <= total) raf = requestAnimationFrame(scramble);
+          else nameEl.textContent = targetHover;
+        }
+        scramble();
+      });
+      row.addEventListener('mouseleave', () => {
+        if (previewEl) previewEl.classList.remove('active');
+
+        cancelAnimationFrame(raf);
+        frame = 0;
+        function unscramble() {
+          const progress = frame / total;
+          nameEl.textContent = original.split('').map((ch, i) => {
+            if (ch === ' ') return ' ';
+            if (i / original.length < progress) return original[i];
+            return chars[Math.floor(Math.random() * chars.length)];
+          }).join('');
+          frame++;
+          if (frame <= total) raf = requestAnimationFrame(unscramble);
+          else nameEl.textContent = original;
+        }
+        unscramble();
+      });
+    });
+
+    /* ─── MAGNETIC HOVER (stack items) ─── */
+    stackItems.forEach(item => {
+      item.addEventListener('mousemove', e => {
+        const r = item.getBoundingClientRect();
+        const dx = (e.clientX - (r.left + r.width / 2)) * 0.15;
+        const dy = (e.clientY - (r.top + r.height / 2)) * 0.3;
+        item.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+      item.addEventListener('mouseleave', () => {
+        item.style.transform = '';
+      });
+    });
+
+    /* ─── RAF SCROLL LOOP ─── */
+    let revealRaf = 0;
+    function runReveals() {
+      revealRaf = 0;
+      updateAboutWords();
       checkLines();
       checkLabels();
       checkStack();
       checkProjects();
+    }
+    function scheduleReveals() {
+      if (revealRaf) return;
+      revealRaf = requestAnimationFrame(runReveals);
+    }
+    window.addEventListener('scroll', scheduleReveals, { passive: true });
+    window.addEventListener('resize', scheduleReveals, { passive: true });
+    scheduleReveals();
 
-    })();
   </script>
 </body>
 
