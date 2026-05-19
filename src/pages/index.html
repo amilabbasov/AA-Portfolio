@@ -1431,7 +1431,7 @@
       }
 
       createStarfield() {
-        const STAR_COUNT = 62000;
+        const STAR_COUNT = 84000;
         const SPREAD = 5400;
         const positions = new Float32Array(STAR_COUNT * 3);
         const colors = new Float32Array(STAR_COUNT * 3);
@@ -1466,12 +1466,12 @@
           const blue = 0.72 + t * 0.28;
           const green = 0.78 + t * 0.2;
           const red = 0.88 + (1 - t) * 0.12;
-          colors[i3] = red * (0.92 + rnd() * 0.12);
-          colors[i3 + 1] = green * (0.92 + rnd() * 0.1);
-          colors[i3 + 2] = blue + rnd() * 0.08;
+          colors[i3] = red * (0.98 + rnd() * 0.14);
+          colors[i3 + 1] = green * (0.98 + rnd() * 0.12);
+          colors[i3 + 2] = blue + rnd() * 0.12;
 
           const mag = rnd();
-          sizes[i] = 0.55 + mag * mag * 2.85;
+          sizes[i] = 0.78 + mag * mag * 3.4;
           phases[i] = rnd() * Math.PI * 2;
         }
 
@@ -1493,13 +1493,13 @@
 
           void main() {
             vColor = starColor;
-            float tw = 0.78 + 0.22 * sin(uTime * 2.1 + phase * 3.14159);
+            float tw = 0.86 + 0.14 * sin(uTime * 2.1 + phase * 3.14159);
             vAlpha = tw;
             vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
             float dist = max(-mvPosition.z, 4.0);
-            float ps = size * uPixelRatio * (420.0 / dist);
-            float psMax = mix(56.0, 26.0, uSunGlare);
-            gl_PointSize = clamp(ps, 1.2, psMax);
+            float ps = size * uPixelRatio * (500.0 / dist);
+            float psMax = mix(64.0, 26.0, uSunGlare);
+            gl_PointSize = clamp(ps, 1.6, psMax);
             gl_Position = projectionMatrix * mvPosition;
           }
         `;
@@ -1513,14 +1513,14 @@
             float r = length(p);
             float core = 1.0 - smoothstep(0.0, 0.18, r);
             float glow = 1.0 - smoothstep(0.18, 0.5, r);
-            float a = core * 0.95 + glow * 0.35;
+            float a = core * 1.0 + glow * 0.45;
             a *= vAlpha;
             float glareAtten = mix(1.0, 0.42, uSunGlare);
             a *= glareAtten;
             if (a < 0.02) discard;
-            vec3 col = vColor * (0.85 + core * 0.35);
-            col *= mix(1.0, 0.82, uSunGlare * 0.38);
-            gl_FragColor = vec4(col, a * 0.88);
+            vec3 col = vColor * (0.98 + core * 0.42);
+            col *= mix(1.08, 0.82, uSunGlare * 0.38);
+            gl_FragColor = vec4(col, min(a, 1.0));
           }
         `;
 
@@ -1782,6 +1782,9 @@
         this.shell = document.getElementById('site-shell');
         this.toggle = document.getElementById('space-explore-toggle');
         this.hud = document.getElementById('play-hud');
+        this.music = new Audio('/audio/explore-background.mp3');
+        this.music.loop = true;
+        this.music.preload = 'auto';
         this.active = false;
         this.savedScrollY = 0;
       }
@@ -1846,10 +1849,13 @@
         this.toggle.setAttribute('aria-label', 'Exit free roam space view');
         this.hud.hidden = false;
         this.setHudCopy();
+        this.music.play().catch(() => { });
       }
 
       exit() {
         if (!this.active) return;
+        this.music.pause();
+        this.music.currentTime = 0;
         this.controls.detach();
         this.engine.setFreeRoam(false);
 
